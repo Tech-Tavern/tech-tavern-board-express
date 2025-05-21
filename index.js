@@ -3,7 +3,11 @@ import express from "express";
 import cors from "cors";
 import mysql from "mysql2/promise";
 import { drizzle } from "drizzle-orm/mysql2";
-import { errorHandler } from "./src/middleware/errorHandler";
+import boardRoutes from "./src/routes/boardRoutes.js";
+import listRoutes from "./src/routes/listRoutes.js";
+import cardRoutes from "./src/routes/cardRoutes.js";
+import { errorHandler, notFound } from "./src/middleware/errorHandler.js";
+import { logger } from "./src/middleware/logger.js";
 
 dotenv.config();
 
@@ -20,11 +24,14 @@ export const app = express();
 
 app.use(cors());
 app.use(express.json());
-
+app.use(logger);
+app.use("/boards", boardRoutes);
+app.use("/boards/:boardId/lists", listRoutes);
+app.use("/boards/:boardId/lists/:listId/cards", cardRoutes);
 app.get("/health", (req, res) => {
   res.json({ status: "ok", code: 200 });
 });
-
+app.use(notFound);
 app.use(errorHandler);
 
 if (process.env.NODE_ENV !== "test") {

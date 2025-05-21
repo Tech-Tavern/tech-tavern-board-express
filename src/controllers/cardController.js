@@ -1,4 +1,4 @@
-import { db } from "../index.js";
+import { db } from "../../index.js";
 import { cards } from "../db/schema.js";
 
 export const getCards = async (req, res, next) => {
