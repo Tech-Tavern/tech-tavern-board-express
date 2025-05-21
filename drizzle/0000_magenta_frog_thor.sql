@@ -1,6 +1,7 @@
 CREATE TABLE `boards` (
 	`id` serial AUTO_INCREMENT NOT NULL,
 	`name` varchar(255) NOT NULL,
+	`position` bigint unsigned DEFAULT 0,
 	`created_at` timestamp DEFAULT (now()),
 	`updated_at` timestamp ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT `boards_id` PRIMARY KEY(`id`)
@@ -24,6 +25,7 @@ CREATE TABLE `lists` (
 	`id` serial AUTO_INCREMENT NOT NULL,
 	`board_id` bigint unsigned NOT NULL,
 	`title` varchar(255) NOT NULL,
+	`color` varchar(50) DEFAULT '#D8B4FE',
 	`position` bigint unsigned DEFAULT 0,
 	`created_at` timestamp DEFAULT (now()),
 	`updated_at` timestamp ON UPDATE CURRENT_TIMESTAMP,
