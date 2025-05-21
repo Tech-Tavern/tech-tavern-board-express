@@ -1,0 +1,33 @@
+# docker-compose.yml
+version: "3.8"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: tech-tavern-mysql
+    env_file:
+      - .env # ← loads all vars from .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tech-tavern-api
+    env_file:
+      - .env
+    ports:
+      - "3009:3009"
+    depends_on:
+      - db
+
+volumes:
+  db_data:

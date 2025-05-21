@@ -1,0 +1,32 @@
+import dotenv from "dotenv";
+import express from "express";
+import cors from "cors";
+import mysql from "mysql2/promise";
+import { drizzle } from "drizzle-orm/mysql2";
+
+dotenv.config();
+
+const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
+});
+export const db = drizzle(pool);
+
+export const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", code: 200 });
+});
+
+if (process.env.NODE_ENV !== "test") {
+  const PORT = process.env.PORT || 3008;
+  app.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`);
+  });
+}
