@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "c2308be2-2975-40ed-9e20-54fa75e8413b",
+  "id": "8d1517b6-df0f-4e78-b485-21cc122b5ce6",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "boards": {
@@ -63,7 +63,7 @@
         },
         "list_id": {
           "name": "list_id",
-          "type": "int unsigned",
+          "type": "bigint unsigned",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -92,9 +92,9 @@
         },
         "position": {
           "name": "position",
-          "type": "int",
+          "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false,
           "default": 0
         },
@@ -170,7 +170,7 @@
         },
         "board_id": {
           "name": "board_id",
-          "type": "int unsigned",
+          "type": "bigint unsigned",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -184,9 +184,9 @@
         },
         "position": {
           "name": "position",
-          "type": "int",
+          "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false,
           "default": 0
         },

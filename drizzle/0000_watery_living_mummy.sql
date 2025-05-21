@@ -8,11 +8,11 @@ CREATE TABLE `boards` (
 --> statement-breakpoint
 CREATE TABLE `cards` (
 	`id` serial AUTO_INCREMENT NOT NULL,
-	`list_id` int unsigned NOT NULL,
+	`list_id` bigint unsigned NOT NULL,
 	`title` varchar(255) NOT NULL,
 	`description` text,
 	`color` varchar(50) DEFAULT 'default',
-	`position` int NOT NULL DEFAULT 0,
+	`position` bigint unsigned DEFAULT 0,
 	`completed` boolean NOT NULL DEFAULT false,
 	`archived` boolean NOT NULL DEFAULT false,
 	`created_at` timestamp DEFAULT (now()),
@@ -22,9 +22,9 @@ CREATE TABLE `cards` (
 --> statement-breakpoint
 CREATE TABLE `lists` (
 	`id` serial AUTO_INCREMENT NOT NULL,
-	`board_id` int unsigned NOT NULL,
+	`board_id` bigint unsigned NOT NULL,
 	`title` varchar(255) NOT NULL,
-	`position` int NOT NULL DEFAULT 0,
+	`position` bigint unsigned DEFAULT 0,
 	`created_at` timestamp DEFAULT (now()),
 	`updated_at` timestamp ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT `lists_id` PRIMARY KEY(`id`)
