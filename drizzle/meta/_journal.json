@@ -1,13 +1,3 @@
 {
-  "version": "7",
-  "dialect": "mysql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "5",
-      "when": 1747832983976,
-      "tag": "0000_free_scourge",
-      "breakpoints": true
-    }
-  ]
+  "entries": []
 }
