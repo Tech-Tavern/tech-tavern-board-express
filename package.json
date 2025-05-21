@@ -5,8 +5,9 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js",
-    "start": "node index.js"
+    "migrate": "npx drizzle-kit generate && npx drizzle-kit migrate",
+    "start": "npm run migrate && node index.js",
+    "dev": "nodemon --exec \"npm run migrate && node index.js\""
   },
   "keywords": [],
   "author": "",

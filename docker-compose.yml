@@ -6,7 +6,7 @@ services:
     image: mysql:8.0
     container_name: tech-tavern-mysql
     env_file:
-      - .env # ← loads all vars from .env
+      - .env
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
