@@ -1,0 +1,1 @@
+ALTER TABLE `lists` ADD `column_pos` bigint unsigned DEFAULT 0;

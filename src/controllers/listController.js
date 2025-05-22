@@ -20,6 +20,7 @@ export const getLists = async (req, res, next) => {
         title: l.title,
         color: l.color,
         position: l.position.toString(),
+        columnPos: l.columnPos.toString(),
         createdBy: l.createdBy,
         updatedBy: l.updatedBy,
         createdAt: l.createdAt,
@@ -34,7 +35,7 @@ export const getLists = async (req, res, next) => {
 export const createList = async (req, res, next) => {
   try {
     const boardId = BigInt(req.params.boardId);
-    const { title, position = 0, color = "#D8B4FE" } = req.body;
+    const { title, position = 0, color = "#D8B4FE" , columnPos} = req.body;
     const userUid = req.header("x-user-uid");
 
     // 1️⃣ insert & grab the auto-increment id
@@ -45,6 +46,7 @@ export const createList = async (req, res, next) => {
         title,
         color,
         position,
+        columnPos,
         createdBy: userUid,
         updatedBy: userUid,
       })
@@ -63,6 +65,7 @@ export const createList = async (req, res, next) => {
       title: l.title,
       color: l.color,
       position: l.position.toString(),
+      columnPos: l.columnPos.toString(),
       createdBy: l.createdBy,
       updatedBy: l.updatedBy,
       createdAt: l.createdAt,
