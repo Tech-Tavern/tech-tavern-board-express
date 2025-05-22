@@ -19,14 +19,26 @@ export const getBoards = async (req, res, next) => {
   }
 };
 
+
 export const createBoard = async (req, res, next) => {
   try {
+
+    const userUid = req.header("x-user-uid");
     const { name, position = 0 } = req.body;
+
+    // insert board with all NOT NULL fields
     const [{ insertId }] = await db
       .insert(boards)
-      .values({ name, position })
+      .values({
+        name,
+        position,
+        ownerUid: userUid,
+        createdBy: userUid,
+        updatedBy: userUid,
+      })
       .execute();
 
+    // fetch the newly-created row
     const [b] = await db
       .select()
       .from(boards)
@@ -36,10 +48,14 @@ export const createBoard = async (req, res, next) => {
       id: b.id.toString(),
       name: b.name,
       position: b.position.toString(),
+      ownerUid: b.ownerUid,
+      createdBy: b.createdBy,
+      updatedBy: b.updatedBy,
       createdAt: b.createdAt,
       updatedAt: b.updatedAt,
     });
   } catch (err) {
+    console.log(err)
     next(err);
   }
 };

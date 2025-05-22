@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { db } from "../../index.js";
 import { boardUsers } from "../db/schema.js";
 
@@ -17,7 +18,7 @@ export const listBoardMembers = async (req, res, next) => {
 export const inviteBoardMember = async (req, res, next) => {
   try {
     const boardId = Number(req.params.boardId);
-    const inviter = req.user.uid;
+    const inviter = req.header("x-user-uid");
     const { userUid, role = "member" } = req.body;
 
     await db
@@ -32,6 +33,7 @@ export const inviteBoardMember = async (req, res, next) => {
       .execute();
     res.status(201).json({ boardId, userUid, status: "pending", role });
   } catch (err) {
+    console.log(err);
     next(err);
   }
 };
@@ -49,10 +51,7 @@ export const updateBoardMemberStatus = async (req, res, next) => {
     if (status === "denied") {
       await db
         .delete(boardUsers)
-        .where(
-          boardUsers.boardId.equals(boardId),
-          boardUsers.userUid.equals(userUid),
-        )
+        .where(eq(boardUsers.boardId, boardId), eq(boardUsers.userUid, userUid))
         .execute();
       return res.status(204).end();
     }
@@ -60,14 +59,12 @@ export const updateBoardMemberStatus = async (req, res, next) => {
     await db
       .update(boardUsers)
       .set({ status })
-      .where(
-        boardUsers.boardId.equals(boardId),
-        boardUsers.userUid.equals(userUid),
-      )
+      .where(eq(boardUsers.boardId, boardId), eq(boardUsers.userUid, userUid))
       .execute();
 
     res.json({ boardId, userUid, status });
   } catch (err) {
+    console.log(err);
     next(err);
   }
 };
@@ -79,10 +76,7 @@ export const removeBoardMember = async (req, res, next) => {
 
     await db
       .delete(boardUsers)
-      .where(
-        boardUsers.boardId.equals(boardId),
-        boardUsers.userUid.equals(userUid),
-      )
+      .where(eq(boardUsers.boardId, boardId), eq(boardUsers.userUid, userUid))
       .execute();
 
     res.status(204).end();

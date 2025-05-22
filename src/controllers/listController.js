@@ -35,10 +35,10 @@ export const createList = async (req, res, next) => {
   try {
     const boardId = BigInt(req.params.boardId);
     const { title, position = 0, color = "#D8B4FE" } = req.body;
-    const userUid = req.user.uid; // set by your Firebase auth middleware
+    const userUid = req.header("x-user-uid");
 
     // 1️⃣ insert & grab the auto-increment id
-    const { insertId } = await db
+    const [ResultSetHeader] = await db
       .insert(lists)
       .values({
         boardId,
@@ -54,7 +54,7 @@ export const createList = async (req, res, next) => {
     const [l] = await db
       .select()
       .from(lists)
-      .where(eq(lists.id, BigInt(insertId)));
+      .where(eq(lists.id, BigInt(ResultSetHeader.insertId)));
 
     // 3️⃣ serialize and return
     res.status(201).json({
@@ -69,6 +69,7 @@ export const createList = async (req, res, next) => {
       updatedAt: l.updatedAt,
     });
   } catch (err) {
+    console.log(err);
     next(err);
   }
 };

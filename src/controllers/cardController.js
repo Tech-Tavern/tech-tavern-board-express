@@ -1,7 +1,7 @@
 // src/controllers/cardController.js
 import { eq } from "drizzle-orm";
 import { cards } from "../db/schema.js";
-import { db } from '../../index.js';
+import { db } from "../../index.js";
 
 // GET /boards/:boardId/lists/:listId/cards
 export const getCards = async (req, res, next) => {
@@ -44,10 +44,10 @@ export const createCard = async (req, res, next) => {
       color = "default",
       position = 0,
     } = req.body;
-    const userUid = req.user.uid; // set by your auth middleware
+    const userUid = req.header("x-user-uid");
 
     // insert & get insertId
-    const { insertId } = await db
+    const [ResultSetHeader] = await db
       .insert(cards)
       .values({
         listId,
@@ -66,7 +66,7 @@ export const createCard = async (req, res, next) => {
     const [c] = await db
       .select()
       .from(cards)
-      .where(eq(cards.id, BigInt(insertId)));
+      .where(eq(cards.id, BigInt(ResultSetHeader.insertId)));
 
     res.status(201).json({
       id: c.id.toString(),
@@ -83,6 +83,8 @@ export const createCard = async (req, res, next) => {
       updatedAt: c.updatedAt,
     });
   } catch (err) {
+    console.log(err);
+
     next(err);
   }
 };
@@ -93,7 +95,7 @@ export const updateCard = async (req, res, next) => {
     const cardId = BigInt(req.params.cardId);
     const { title, description, color, position, completed, archived } =
       req.body;
-    const userUid = req.user.uid;
+    const userUid = req.header("x-user-uid");
 
     // build the update payload only from provided fields
     const upd = { updatedBy: userUid };
@@ -126,6 +128,8 @@ export const updateCard = async (req, res, next) => {
       updatedAt: c.updatedAt,
     });
   } catch (err) {
+    console.log(err);
+
     next(err);
   }
 };
