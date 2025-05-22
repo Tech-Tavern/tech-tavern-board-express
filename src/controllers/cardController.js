@@ -1,6 +1,7 @@
 // src/controllers/cardController.js
 import { eq } from "drizzle-orm";
 import { cards } from "../db/schema.js";
+import { db } from '../../index.js';
 
 // GET /boards/:boardId/lists/:listId/cards
 export const getCards = async (req, res, next) => {
