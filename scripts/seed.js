@@ -47,6 +47,12 @@ function randomInt(min, max) {
         name: "Eve Polastri",
         photo: "https://example.com/eve.png",
       },
+      {
+        uid: "mgvkm6gCGffDOBj5EbnSIM1nakg2",
+        email: "tomcoons1413@gmail.com",
+        name: "Thomas Coons",
+        photo: "",
+      },
     ];
     console.log("Seeding users...");
     for (const u of users) {
@@ -94,6 +100,7 @@ function randomInt(min, max) {
             body: JSON.stringify({
               title: `List ${j + 1}`,
               position: j,
+              columnPos: Math.floor(Math.random() * 5) + 1,
               color: ["#D8B4FE", "#A5F3FC", "#FDE68A", "#C7D2FE", "#E0FFFF"][j],
             }),
           });

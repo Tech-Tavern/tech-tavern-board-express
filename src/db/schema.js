@@ -73,6 +73,7 @@ export const lists = mysqlTable("lists", {
   title: varchar("title", { length: 255 }).notNull(),
   color: varchar("color", { length: 50 }).default("#D8B4FE"),
   position: bigint("position", { unsigned: true }).default(0),
+  columnPos: bigint("column_pos", { unsigned: true }).default(0),
   createdBy: varchar("created_by", { length: 64 })
     .notNull()
     .references(() => users.uid),

@@ -19,6 +19,36 @@ export const getBoards = async (req, res, next) => {
   }
 };
 
+export const getMyBoards = async (req, res, next) => {
+  try {
+    const userUid = req.header("x-user-uid");
+    if (!userUid) {
+      return res.status(401).json({ message: "Missing x-user-uid header" });
+    }
+
+    // only fetch boards owned by this user
+    const rows = await db
+      .select()
+      .from(boards)
+      .where(eq(boards.ownerUid, userUid))
+      .orderBy(boards.position);
+
+    const sanitized = rows.map((b) => ({
+      id: b.id.toString(),
+      name: b.name,
+      position: b.position.toString(),
+      createdAt: b.createdAt,
+      updatedAt: b.updatedAt,
+      ownerUid: b.ownerUid,
+      createdBy: b.createdBy,
+      updatedBy: b.updatedBy,
+    }));
+
+    res.json(sanitized);
+  } catch (err) {
+    next(err);
+  }
+};
 
 export const createBoard = async (req, res, next) => {
   try {
