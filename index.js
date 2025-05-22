@@ -8,6 +8,8 @@ import listRoutes from "./src/routes/listRoutes.js";
 import cardRoutes from "./src/routes/cardRoutes.js";
 import { errorHandler, notFound } from "./src/middleware/errorHandler.js";
 import { logger } from "./src/middleware/logger.js";
+import boardUsersRoutes from "./src/routes/boardUsersRoutes.js";
+import userRoutes from "./src/routes/userRoutes.js";
 
 dotenv.config();
 
@@ -28,6 +30,8 @@ app.use(logger);
 app.use("/boards", boardRoutes);
 app.use("/boards/:boardId/lists", listRoutes);
 app.use("/boards/:boardId/lists/:listId/cards", cardRoutes);
+app.use("/users", userRoutes);
+app.use("/boards/:boardId/members", boardUsersRoutes);
 app.get("/health", (req, res) => {
   res.json({ status: "ok", code: 200 });
 });
