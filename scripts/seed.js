@@ -1,169 +1,205 @@
-// scripts/seed.js
-import "dotenv/config";
-import mysql from "mysql2/promise";
-import { drizzle } from "drizzle-orm/mysql2";
-import { users, boards, boardUsers, lists, cards } from "../src/db/schema.js";
+// scripts/seed_api.js
+// This script uses your HTTP API to seed the backend with realistic data.
+// Usage: node scripts/seed_api.js
+
+const BASE = process.env.BASE_URL || "http://localhost:3009";
+// For auth: adjust header name or token as needed. Here we use x-user-uid for testing.
+const headerFor = (uid) => ({
+  "Content-Type": "application/json",
+  "x-user-uid": uid,
+});
+
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
 (async () => {
-  const pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT) || 3307,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-  });
-  const db = drizzle(pool);
-
-  const uidAlice = "UidAlice123";
-  const uidBob = "UidBob456";
-
   try {
-    // 1️⃣ Upsert users
-    await db
-      .insert(users)
-      .values([
-        {
-          uid: uidAlice,
-          email: "alice@example.com",
-          name: "Alice Liddell",
-          photo: "https://example.com/alice.png",
-        },
-        {
-          uid: uidBob,
-          email: "bob@example.com",
-          name: "Bob Builder",
-          photo: "https://example.com/bob.png",
-        },
-      ])
-      .onDuplicateKeyUpdate({
-        set: {
-          email: (v) => v.email,
-          name: (v) => v.name,
-          photo: (v) => v.photo,
-        },
-      })
-      .execute();
+    // 1️⃣ Create 5 demo users
+    const users = [
+      {
+        uid: "UidAlice123",
+        email: "alice@example.com",
+        name: "Alice Liddell",
+        photo: "https://example.com/alice.png",
+      },
+      {
+        uid: "UidBob456",
+        email: "bob@example.com",
+        name: "Bob Builder",
+        photo: "https://example.com/bob.png",
+      },
+      {
+        uid: "UidCarol789",
+        email: "carol@example.com",
+        name: "Carol Danvers",
+        photo: "https://example.com/carol.png",
+      },
+      {
+        uid: "UidDave012",
+        email: "dave@example.com",
+        name: "Dave Grohl",
+        photo: "https://example.com/dave.png",
+      },
+      {
+        uid: "UidEve345",
+        email: "eve@example.com",
+        name: "Eve Polastri",
+        photo: "https://example.com/eve.png",
+      },
+    ];
+    console.log("Seeding users...");
+    for (const u of users) {
+      const resp = await fetch(`${BASE}/users`, {
+        method: "POST",
+        headers: headerFor(u.uid),
+        body: JSON.stringify(u),
+      });
+      if (!resp.ok)
+        throw new Error(
+          `Failed to seed user ${u.uid}: ${resp.status} ${resp.statusText}`,
+        );
+    }
 
-    // 2️⃣ Create a board & grab its insertId
-    const [boardResult] = await db
-      .insert(boards)
-      .values({
-        name: "Sample Project Board",
-        position: 0,
-        ownerUid: uidAlice,
-        createdBy: uidAlice,
-        updatedBy: uidAlice,
-      })
-      .execute();
-    const boardId = boardResult.insertId; // ← now actually set
+    // 2️⃣ Each user creates 3 boards (authenticated via header)
+    const boardsByUser = {};
+    console.log("Seeding boards...");
+    for (const u of users) {
+      boardsByUser[u.uid] = [];
+      for (let i = 1; i <= 3; i++) {
+        const resp = await fetch(`${BASE}/boards`, {
+          method: "POST",
+          headers: headerFor(u.uid),
+          body: JSON.stringify({ name: `Board ${i} of ${u.name}` }),
+        });
+        if (!resp.ok)
+          throw new Error(
+            `Failed to create board for ${u.uid}: ${resp.status} ${resp.statusText}`,
+          );
+        const board = await resp.json();
+        boardsByUser[u.uid].push(board.id);
+      }
+    }
 
-    // 3️⃣ Add board members
-    await db
-      .insert(boardUsers)
-      .values([
-        {
-          boardId,
-          userUid: uidAlice,
-          role: "owner",
-          status: "accepted",
-          invitedBy: uidAlice,
-        },
-        {
-          boardId,
-          userUid: uidBob,
-          role: "member",
-          status: "pending",
-          invitedBy: uidAlice,
-        },
-      ])
-      .execute();
+    // 3️⃣ Each board gets 5 lists
+    const listsByBoard = {};
+    console.log("Seeding lists...");
+    for (const [uid, boardIds] of Object.entries(boardsByUser)) {
+      for (const boardId of boardIds) {
+        listsByBoard[boardId] = [];
+        for (let j = 0; j < 5; j++) {
+          const resp = await fetch(`${BASE}/boards/${boardId}/lists`, {
+            method: "POST",
+            headers: headerFor(uid),
+            body: JSON.stringify({
+              title: `List ${j + 1}`,
+              position: j,
+              color: ["#D8B4FE", "#A5F3FC", "#FDE68A", "#C7D2FE", "#E0FFFF"][j],
+            }),
+          });
+          if (!resp.ok)
+            throw new Error(
+              `Failed to create list on board ${boardId}: ${resp.status} ${resp.statusText}`,
+            );
+          const list = await resp.json();
+          listsByBoard[boardId].push(list.id);
+        }
+      }
+    }
 
-    // 4️⃣ Create lists & grab each insertId
-    const [todoRes] = await db
-      .insert(lists)
-      .values({
-        boardId,
-        title: "To Do",
-        color: "#D8B4FE",
-        position: 0,
-        createdBy: uidAlice,
-        updatedBy: uidAlice,
-      })
-      .execute();
-    const todoId = todoRes.insertId;
+    // 4️⃣ Each list gets 2–10 cards
+    const cardsByList = {};
+    console.log("Seeding cards...");
+    for (const [uid, boardIds] of Object.entries(boardsByUser)) {
+      for (const boardId of boardIds) {
+        for (const listId of listsByBoard[boardId]) {
+          cardsByList[listId] = [];
+          const count = randomInt(2, 10);
+          for (let k = 0; k < count; k++) {
+            const resp = await fetch(
+              `${BASE}/boards/${boardId}/lists/${listId}/cards`,
+              {
+                method: "POST",
+                headers: headerFor(uid),
+                body: JSON.stringify({
+                  title: `Card ${k + 1}`,
+                  description: `Auto-generated card ${k + 1} in list ${listId}`,
+                  color: ["red", "green", "blue", "purple", "yellow"][k % 5],
+                  position: k,
+                }),
+              },
+            );
+            if (!resp.ok)
+              throw new Error(
+                `Failed to create card in list ${listId}: ${resp.status} ${resp.statusText}`,
+              );
+            const card = await resp.json();
+            cardsByList[listId].push(card.id);
+          }
+        }
+      }
+    }
 
-    const [doingRes] = await db
-      .insert(lists)
-      .values({
-        boardId,
-        title: "Doing",
-        color: "#FDE68A",
-        position: 1,
-        createdBy: uidAlice,
-        updatedBy: uidAlice,
-      })
-      .execute();
-    const doingId = doingRes.insertId;
+    // 5️⃣ Invite one user and accept
+    console.log("Seeding invitations...");
+    for (let i = 0; i < users.length; i++) {
+      const owner = users[i].uid;
+      const invitee = users[(i + 1) % users.length].uid;
+      for (const boardId of boardsByUser[owner]) {
+        const inv = await fetch(`${BASE}/boards/${boardId}/members`, {
+          method: "POST",
+          headers: headerFor(owner),
+          body: JSON.stringify({ userUid: invitee, role: "member" }),
+        });
+        if (!inv.ok)
+          throw new Error(
+            `Failed to invite ${invitee} to board ${boardId}: ${inv.status} ${inv.statusText}`,
+          );
+        const acc = await fetch(
+          `${BASE}/boards/${boardId}/members/${invitee}`,
+          {
+            method: "PUT",
+            headers: headerFor(invitee),
+            body: JSON.stringify({ status: "accepted" }),
+          },
+        );
+        if (!acc.ok)
+          throw new Error(
+            `Failed to accept invite for ${invitee} on board ${boardId}: ${acc.status} ${acc.statusText}`,
+          );
+      }
+    }
 
-    const [doneRes] = await db
-      .insert(lists)
-      .values({
-        boardId,
-        title: "Done",
-        color: "#86EFAC",
-        position: 2,
-        createdBy: uidAlice,
-        updatedBy: uidAlice,
-      })
-      .execute();
-    const doneId = doneRes.insertId;
+    // 6️⃣ Simulate a card move
+    console.log("Simulating card moves...");
+    for (const boardIds of Object.values(boardsByUser)) {
+      for (const boardId of boardIds) {
+        const listsForBoard = listsByBoard[boardId];
+        if (listsForBoard.length < 2) continue;
+        const from = listsForBoard[0];
+        const to = listsForBoard[1];
+        const cardId = cardsByList[from][0];
+        const mv = await fetch(
+          `${BASE}/boards/${boardId}/lists/${from}/cards/${cardId}`,
+          {
+            method: "PUT",
+            headers: headerFor(users[0].uid),
+            body: JSON.stringify({
+              listId: to,
+              position: cardsByList[to].length,
+            }),
+          },
+        );
+        if (!mv.ok)
+          throw new Error(
+            `Failed to move card ${cardId} from ${from} to ${to}: ${mv.status} ${mv.statusText}`,
+          );
+      }
+    }
 
-    // 5️⃣ Create some cards
-    await db
-      .insert(cards)
-      .values([
-        {
-          listId: todoId,
-          title: "Set up project repo",
-          position: 0,
-          color: "blue",
-          createdBy: uidAlice,
-          updatedBy: uidAlice,
-        },
-        {
-          listId: todoId,
-          title: "Define schema",
-          position: 1,
-          color: "#E0E7FF",
-          completed: true,
-          createdBy: uidBob,
-          updatedBy: uidBob,
-        },
-        {
-          listId: doingId,
-          title: "Create initial components",
-          position: 0,
-          color: "purple",
-          createdBy: uidBob,
-          updatedBy: uidBob,
-        },
-        {
-          listId: doneId,
-          title: "Add styling",
-          position: 0,
-          color: "green",
-          archived: true,
-          createdBy: uidAlice,
-          updatedBy: uidAlice,
-        },
-      ])
-      .execute();
-
-    console.log("✅ Seed inserted successfully. Board ID:", boardId);
+    console.log("✅ API seeding complete.");
   } catch (err) {
-    console.error("❌ Seed failed:", err);
-  } finally {
-    await pool.end();
-    process.exit();
+    console.error("❌ Seeding failed:", err);
+    process.exit(1);
   }
 })();
