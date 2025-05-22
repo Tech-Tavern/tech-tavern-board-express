@@ -1,12 +1,12 @@
 # Tech Tavern Board Express Backend
 
-A Node/Express backend using Drizzle ORM and MySQL for the Trello-style board app.
+A Node/Express backend using Drizzle ORM and MySQL for the Trello‑style board app.
 
 ## Prerequisites
 
 - Node.js 18+ installed locally
 - Docker and Docker Compose installed
-  _Troubleshooting:_ If you don't have Docker Compose, install it via your package manager or follow the guide at [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/)\_
+  _Troubleshooting:_ If you don't have Docker Compose, install it via your package manager or follow the guide at [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/)
 - A copy of `.env` created from `.env.sample`
 
 ## Setup
@@ -23,7 +23,7 @@ A Node/Express backend using Drizzle ORM and MySQL for the Trello-style board ap
    cp .env.sample .env
    ```
 
-   The values in `.env.sample` will work out-of-the-box for local development. For security, consider rotating these credentials or using stronger passwords before sharing or deploying.
+   The values in `.env.sample` will work out of the box for local development. For security, consider rotating these credentials before sharing or deploying.
 
 ## Development (iterating on API)
 
@@ -41,15 +41,15 @@ A Node/Express backend using Drizzle ORM and MySQL for the Trello-style board ap
 
 3. The API will listen on the port defined in `.env` (default `3009`).
 
-## Running Both Services (production or full stack)
+## Full‑stack Run (production or full stack)
 
-Bring up both the database and the API in containers:
+Bring up both the DB and API in containers:
 
 ```bash
 docker-compose up -d
 ```
 
-This will automatically apply any pending migrations and expose:
+This applies any pending migrations and exposes:
 
 - MySQL on the host port defined in `.env`
 - API on the host port defined in `.env`
@@ -62,22 +62,27 @@ Tear down all containers and network:
 docker-compose down
 ```
 
-## API Endpoints
+---
 
-### Health
+## Authentication Header
 
-#### GET /health
+For development and seeding we trust an `x-user-uid` header to identify the user. In production you’ll replace this with real Firebase JWT verification middleware.
 
-Check server health status.
+All protected endpoints require:
 
-**Request**
-
-```http
-GET /health HTTP/1.1
-Host: localhost:${PORT}
+```
+Header: x-user-uid: <Firebase UID>
 ```
 
-**Response**
+---
+
+## API Endpoints
+
+### Health Check
+
+**GET** `/health`
+
+Returns:
 
 ```json
 { "status": "ok" }
@@ -89,48 +94,15 @@ Host: localhost:${PORT}
 
 List all users.
 
-**Response**
-
-```json
-[
-  {
-    "uid": "UidAlice123",
-    "email": "alice@example.com",
-    "name": "Alice Liddell",
-    "photo": "https://example.com/alice.png",
-    "createdAt": "2025-05-21T12:00:00Z"
-  },
-  {
-    "uid": "UidBob456",
-    "email": "bob@example.com",
-    "name": "Bob Builder",
-    "photo": "https://example.com/bob.png",
-    "createdAt": "2025-05-21T12:00:00Z"
-  }
-]
-```
-
 #### GET /users/\:uid
 
-Fetch a single user by Firebase UID.
-
-**Response**
-
-```json
-{
-  "uid": "UidAlice123",
-  "email": "alice@example.com",
-  "name": "Alice Liddell",
-  "photo": "https://example.com/alice.png",
-  "createdAt": "2025-05-21T12:00:00Z"
-}
-```
+Fetch a single user by UID.
 
 #### POST /users
 
-Create or update a user record (called after auth).
+Create or update a user after sign‑in.
 
-**Body**
+**Body**:
 
 ```json
 {
@@ -141,328 +113,141 @@ Create or update a user record (called after auth).
 }
 ```
 
-**Response**
-
-```json
-{
-  "uid": "UidAlice123",
-  "email": "alice@example.com",
-  "name": "Alice Liddell",
-  "photo": "https://example.com/alice.png",
-  "createdAt": "2025-05-21T12:00:00Z"
-}
-```
+---
 
 ### Boards
 
 #### GET /boards
 
-Retrieve all boards accessible to the user.
-
-**Response**
-
-```json
-[
-  {
-    "id": 1,
-    "name": "Project Roadmap",
-    "ownerUid": "UidAlice123",
-    "createdBy": "UidAlice123",
-    "updatedBy": "UidAlice123",
-    "createdAt": "2025-05-01T08:00:00Z",
-    "updatedAt": "2025-05-18T10:15:30Z"
-  },
-  {
-    "id": 2,
-    "name": "Marketing Plan",
-    "ownerUid": "UidBob456",
-    "createdBy": "UidBob456",
-    "updatedBy": "UidBob456",
-    "createdAt": "2025-04-22T09:30:00Z",
-    "updatedAt": "2025-05-19T16:45:00Z"
-  }
-]
-```
+Retrieve all boards the authenticated user has access to.
 
 #### POST /boards
 
 Create a new board.
+**Header**: `x-user-uid` required
 
-**Body**
-
-```json
-{ "name": "New Campaign" }
-```
-
-**Response**
+**Body**:
 
 ```json
-{
-  "id": 3,
-  "name": "New Campaign",
-  "ownerUid": "UidAlice123",
-  "createdBy": "UidAlice123",
-  "updatedBy": "UidAlice123",
-  "createdAt": "2025-05-21T12:00:00Z",
-  "updatedAt": "2025-05-21T12:00:00Z"
-}
+{ "name": "My New Board" }
 ```
+
+---
 
 ### Board Members
 
 #### GET /boards/\:boardId/members
 
-List all members of a given board.
-
-**Response**
-
-```json
-[
-  {
-    "boardId": 1,
-    "userUid": "UidAlice123",
-    "role": "owner",
-    "status": "accepted",
-    "invitedBy": "UidAlice123",
-    "invitedAt": "2025-05-21T12:05:00Z"
-  },
-  {
-    "boardId": 1,
-    "userUid": "UidBob456",
-    "role": "member",
-    "status": "pending",
-    "invitedBy": "UidAlice123",
-    "invitedAt": "2025-05-21T12:05:00Z"
-  }
-]
-```
+List board members.
 
 #### POST /boards/\:boardId/members
 
-Invite a user to a board.
+Invite a user.
 
-**Body**
+**Body**:
 
 ```json
 { "userUid": "UidBob456", "role": "member" }
 ```
 
-**Response**
-
-```json
-{
-  "boardId": 1,
-  "userUid": "UidBob456",
-  "role": "member",
-  "status": "pending",
-  "invitedBy": "UidAlice123",
-  "invitedAt": "2025-05-21T12:05:00Z"
-}
-```
-
 #### PUT /boards/\:boardId/members/\:userUid
 
-Accept or deny an invitation.
+Accept or deny invitation.
 
-**Body**
+**Body**:
 
 ```json
 { "status": "accepted" }
 ```
 
-**Response**
-
-```json
-{ "boardId": 1, "userUid": "UidBob456", "status": "accepted" }
-```
-
 #### DELETE /boards/\:boardId/members/\:userUid
 
-Remove a member from a board.
+Remove a member.
 
-**Response**
-
-- `204 No Content`
+---
 
 ### Lists
 
 #### GET /boards/\:boardId/lists
 
-Retrieve lists for a specific board.
-
-**Response**
-
-```json
-[
-  {
-    "id": 10,
-    "boardId": 1,
-    "title": "To Do",
-    "color": "#D8B4FE",
-    "position": 0,
-    "createdBy": "UidAlice123",
-    "updatedBy": "UidAlice123",
-    "createdAt": "2025-01-15T09:35:00.000Z",
-    "updatedAt": "2025-01-15T09:35:00.000Z"
-  },
-  {
-    "id": 11,
-    "boardId": 1,
-    "title": "In Progress",
-    "color": "#A5F3FC",
-    "position": 1,
-    "createdBy": "UidBob456",
-    "updatedBy": "UidBob456",
-    "createdAt": "2025-01-16T10:00:00.000Z",
-    "updatedAt": "2025-03-05T15:10:00.000Z"
-  }
-]
-```
+Retrieve all lists for a board.
 
 #### POST /boards/\:boardId/lists
 
-Create a new list in a board.
-
-**Body**
-
-```json
-{ "title": "Review", "position": 3, "color": "#FDE68A" }
-```
-
-**Response**
+Create a new list.
+**Body**:
 
 ```json
-{
-  "id": 12,
-  "boardId": 1,
-  "title": "Review",
-  "position": 3,
-  "color": "#FDE68A",
-  "createdBy": "UidAlice123",
-  "updatedBy": "UidAlice123",
-  "createdAt": "2025-05-21T12:10:00Z",
-  "updatedAt": "2025-05-21T12:10:00Z"
-}
+{ "title": "To Do", "position": 0, "color": "#D8B4FE" }
 ```
+
+---
 
 ### Cards
 
 #### GET /boards/\:boardId/lists/\:listId/cards
 
-Retrieve cards in a specific list.
-
-**Response**
-
-```json
-[
-  {
-    "id": 100,
-    "listId": 10,
-    "title": "Set up project repo",
-    "description": "Initialize GitHub repo, add README and license",
-    "color": "default",
-    "position": 0,
-    "completed": false,
-    "archived": false,
-    "createdBy": "UidAlice123",
-    "updatedBy": "UidAlice123",
-    "createdAt": "2025-01-15T09:40:00.000Z",
-    "updatedAt": "2025-01-15T09:40:00.000Z"
-  },
-  {
-    "id": 101,
-    "listId": 10,
-    "title": "Define schema",
-    "description": "Draft database schema and share with team",
-    "color": "#E0E7FF",
-    "position": 1,
-    "completed": true,
-    "archived": false,
-    "createdBy": "UidBob456",
-    "updatedBy": "UidBob456",
-    "createdAt": "2025-01-15T10:00:00.000Z",
-    "updatedAt": "2025-02-01T12:15:00.000Z"
-  }
-]
-```
+List cards in a list.
 
 #### POST /boards/\:boardId/lists/\:listId/cards
 
-Create a new card.
-
-**Body**
-
-```json
-{
-  "title": "Finalize copy",
-  "description": "Incorporate feedback and finalize",
-  "color": "green",
-  "position": 2
-}
-```
-
-**Response**
+Add a new card.
+**Body**:
 
 ```json
 {
-  "id": 102,
-  "listId": 10,
-  "title": "Finalize copy",
-  "description": "Incorporate feedback and finalize",
+  "title": "Write tests",
+  "description": "Cover core modules",
   "color": "green",
-  "position": 2,
-  "completed": false,
-  "archived": false,
-  "createdBy": "UidAlice123",
-  "updatedBy": "UidAlice123",
-  "createdAt": "2025-05-21T12:15:00Z",
-  "updatedAt": "2025-05-21T12:15:00Z"
+  "position": 1
 }
 ```
 
 #### PUT /boards/\:boardId/lists/\:listId/cards/\:cardId
 
-Update a card (e.g., move position, recolor, mark complete, archive).
+Update a card (move, recolor, complete, archive).
 
-**Body**
-
-```json
-{ "position": 1, "completed": true, "color": "red" }
-```
-
-**Response**
+**Body** (any subset):
 
 ```json
-{
-  "id": 101,
-  "listId": 10,
-  "title": "Define schema",
-  "description": "Draft database schema and share with team",
-  "color": "red",
-  "position": 1,
-  "completed": true,
-  "archived": false,
-  "createdBy": "UidBob456",
-  "updatedBy": "UidBob456",
-  "createdAt": "2025-01-15T10:00:00.000Z",
-  "updatedAt": "2025-05-21T12:20:00Z"
-}
+{ "position": 2, "completed": true, "color": "red" }
 ```
+
+---
+
+## Seeding via HTTP
+
+We include a helper script that hits your API and simulates 5 users each creating boards, lists, cards, invitations, and moves.
+
+**Usage**:
+
+```bash
+node scripts/seed_api.js
+```
+
+You can customize `BASE_URL` via environment:
+
+```bash
+BASE_URL=http://localhost:3009 node scripts/seed_api.js
+```
+
+---
 
 ## Database Schema
 
-The application uses these tables defined in `src/db/schema.js`:
+Defined in `src/db/schema.js`, the main tables:
 
-- **users**: Firebase UIDs with profile info
-- **boards**: tracks board metadata and ownership
-- **board_users**: join table for board membership and invitation status
-- **lists**: belongs to a board, ordered by `position`
-- **cards**: belongs to a list, with fields for content, status, color, and order
+- **users**: Firebase profile records
+- **boards**: each with `ownerUid`, `createdBy`, `updatedBy`
+- **board_users**: membership status & role
+- **lists**: per‑board columns
+- **cards**: per‑list items, with content, colors, status, and ordering
 
-Every table has `created_at` and `updated_at` timestamps managed by Drizzle.
+All tables include `created_at` and `updated_at`.
 
-## Notes
+---
 
-- Migrations are managed via Drizzle Kit and run on each startup (`npm run migrate`).
-- Do **not** commit your real `.env`; commit only `.env.sample`.
-- If another dev clones this repo, they can stand up just the DB (`docker-compose up -d db`) and then run the API locally, or bring up the full stack with `docker-compose up -d`.
+> **Tip:** Do **not** commit your real `.env`; only `.env.sample`. If another dev clones:
+>
+> 1. `docker-compose up -d db`
+> 2. `npm run dev`
