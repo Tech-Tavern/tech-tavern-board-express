@@ -64,7 +64,9 @@ docker-compose down
 
 ## API Endpoints
 
-### GET /health
+### Health
+
+#### GET /health
 
 Check server health status.
 
@@ -81,11 +83,81 @@ Host: localhost:${PORT}
 { "status": "ok" }
 ```
 
+### Users
+
+#### GET /users
+
+List all users.
+
+**Response**
+
+```json
+[
+  {
+    "uid": "UidAlice123",
+    "email": "alice@example.com",
+    "name": "Alice Liddell",
+    "photo": "https://example.com/alice.png",
+    "createdAt": "2025-05-21T12:00:00Z"
+  },
+  {
+    "uid": "UidBob456",
+    "email": "bob@example.com",
+    "name": "Bob Builder",
+    "photo": "https://example.com/bob.png",
+    "createdAt": "2025-05-21T12:00:00Z"
+  }
+]
+```
+
+#### GET /users/\:uid
+
+Fetch a single user by Firebase UID.
+
+**Response**
+
+```json
+{
+  "uid": "UidAlice123",
+  "email": "alice@example.com",
+  "name": "Alice Liddell",
+  "photo": "https://example.com/alice.png",
+  "createdAt": "2025-05-21T12:00:00Z"
+}
+```
+
+#### POST /users
+
+Create or update a user record (called after auth).
+
+**Body**
+
+```json
+{
+  "uid": "UidAlice123",
+  "email": "alice@example.com",
+  "name": "Alice Liddell",
+  "photo": "https://example.com/alice.png"
+}
+```
+
+**Response**
+
+```json
+{
+  "uid": "UidAlice123",
+  "email": "alice@example.com",
+  "name": "Alice Liddell",
+  "photo": "https://example.com/alice.png",
+  "createdAt": "2025-05-21T12:00:00Z"
+}
+```
+
 ### Boards
 
 #### GET /boards
 
-Retrieve all boards.
+Retrieve all boards accessible to the user.
 
 **Response**
 
@@ -94,12 +166,18 @@ Retrieve all boards.
   {
     "id": 1,
     "name": "Project Roadmap",
+    "ownerUid": "UidAlice123",
+    "createdBy": "UidAlice123",
+    "updatedBy": "UidAlice123",
     "createdAt": "2025-05-01T08:00:00Z",
     "updatedAt": "2025-05-18T10:15:30Z"
   },
   {
     "id": 2,
     "name": "Marketing Plan",
+    "ownerUid": "UidBob456",
+    "createdBy": "UidBob456",
+    "updatedBy": "UidBob456",
     "createdAt": "2025-04-22T09:30:00Z",
     "updatedAt": "2025-05-19T16:45:00Z"
   }
@@ -122,14 +200,93 @@ Create a new board.
 {
   "id": 3,
   "name": "New Campaign",
+  "ownerUid": "UidAlice123",
+  "createdBy": "UidAlice123",
+  "updatedBy": "UidAlice123",
   "createdAt": "2025-05-21T12:00:00Z",
   "updatedAt": "2025-05-21T12:00:00Z"
 }
 ```
 
+### Board Members
+
+#### GET /boards/\:boardId/members
+
+List all members of a given board.
+
+**Response**
+
+```json
+[
+  {
+    "boardId": 1,
+    "userUid": "UidAlice123",
+    "role": "owner",
+    "status": "accepted",
+    "invitedBy": "UidAlice123",
+    "invitedAt": "2025-05-21T12:05:00Z"
+  },
+  {
+    "boardId": 1,
+    "userUid": "UidBob456",
+    "role": "member",
+    "status": "pending",
+    "invitedBy": "UidAlice123",
+    "invitedAt": "2025-05-21T12:05:00Z"
+  }
+]
+```
+
+#### POST /boards/\:boardId/members
+
+Invite a user to a board.
+
+**Body**
+
+```json
+{ "userUid": "UidBob456", "role": "member" }
+```
+
+**Response**
+
+```json
+{
+  "boardId": 1,
+  "userUid": "UidBob456",
+  "role": "member",
+  "status": "pending",
+  "invitedBy": "UidAlice123",
+  "invitedAt": "2025-05-21T12:05:00Z"
+}
+```
+
+#### PUT /boards/\:boardId/members/\:userUid
+
+Accept or deny an invitation.
+
+**Body**
+
+```json
+{ "status": "accepted" }
+```
+
+**Response**
+
+```json
+{ "boardId": 1, "userUid": "UidBob456", "status": "accepted" }
+```
+
+#### DELETE /boards/\:boardId/members/\:userUid
+
+Remove a member from a board.
+
+**Response**
+
+- `204 No Content`
+
 ### Lists
 
-#### GET /boards/:boardId/lists
+#### GET /boards/\:boardId/lists
 
 Retrieve lists for a specific board.
 
@@ -138,58 +295,59 @@ Retrieve lists for a specific board.
 ```json
 [
   {
-    "id": 1,
-    "boardId": 2,
+    "id": 10,
+    "boardId": 1,
     "title": "To Do",
+    "color": "#D8B4FE",
     "position": 0,
-    "createdAt": "2025-05-20T11:00:00Z",
-    "updatedAt": "2025-05-20T11:00:00Z"
+    "createdBy": "UidAlice123",
+    "updatedBy": "UidAlice123",
+    "createdAt": "2025-01-15T09:35:00.000Z",
+    "updatedAt": "2025-01-15T09:35:00.000Z"
   },
   {
-    "id": 2,
-    "boardId": 2,
+    "id": 11,
+    "boardId": 1,
     "title": "In Progress",
+    "color": "#A5F3FC",
     "position": 1,
-    "createdAt": "2025-05-20T11:05:00Z",
-    "updatedAt": "2025-05-20T11:05:00Z"
-  },
-  {
-    "id": 3,
-    "boardId": 2,
-    "title": "Done",
-    "position": 2,
-    "createdAt": "2025-05-20T11:10:00Z",
-    "updatedAt": "2025-05-20T11:10:00Z"
+    "createdBy": "UidBob456",
+    "updatedBy": "UidBob456",
+    "createdAt": "2025-01-16T10:00:00.000Z",
+    "updatedAt": "2025-03-05T15:10:00.000Z"
   }
 ]
 ```
 
-#### POST /boards/:boardId/lists
+#### POST /boards/\:boardId/lists
 
 Create a new list in a board.
 
 **Body**
 
 ```json
-{ "title": "Review", "position": 3 }
+{ "title": "Review", "position": 3, "color": "#FDE68A" }
 ```
 
 **Response**
 
 ```json
 {
-  "id": 4,
-  "boardId": 2,
+  "id": 12,
+  "boardId": 1,
   "title": "Review",
   "position": 3,
-  "createdAt": "2025-05-21T12:05:00Z",
-  "updatedAt": "2025-05-21T12:05:00Z"
+  "color": "#FDE68A",
+  "createdBy": "UidAlice123",
+  "updatedBy": "UidAlice123",
+  "createdAt": "2025-05-21T12:10:00Z",
+  "updatedAt": "2025-05-21T12:10:00Z"
 }
 ```
 
 ### Cards
 
-#### GET /boards/:boardId/lists/:listId/cards
+#### GET /boards/\:boardId/lists/\:listId/cards
 
 Retrieve cards in a specific list.
 
@@ -198,33 +356,37 @@ Retrieve cards in a specific list.
 ```json
 [
   {
-    "id": 5,
-    "listId": 1,
-    "title": "Write draft",
-    "description": "Create initial draft of marketing copy",
-    "color": "yellow",
+    "id": 100,
+    "listId": 10,
+    "title": "Set up project repo",
+    "description": "Initialize GitHub repo, add README and license",
+    "color": "default",
     "position": 0,
     "completed": false,
     "archived": false,
-    "createdAt": "2025-05-19T09:00:00Z",
-    "updatedAt": "2025-05-19T09:00:00Z"
+    "createdBy": "UidAlice123",
+    "updatedBy": "UidAlice123",
+    "createdAt": "2025-01-15T09:40:00.000Z",
+    "updatedAt": "2025-01-15T09:40:00.000Z"
   },
   {
-    "id": 6,
-    "listId": 1,
-    "title": "Review draft",
-    "description": "Peer review the draft content",
-    "color": "blue",
+    "id": 101,
+    "listId": 10,
+    "title": "Define schema",
+    "description": "Draft database schema and share with team",
+    "color": "#E0E7FF",
     "position": 1,
-    "completed": false,
+    "completed": true,
     "archived": false,
-    "createdAt": "2025-05-19T10:00:00Z",
-    "updatedAt": "2025-05-19T10:30:00Z"
+    "createdBy": "UidBob456",
+    "updatedBy": "UidBob456",
+    "createdAt": "2025-01-15T10:00:00.000Z",
+    "updatedAt": "2025-02-01T12:15:00.000Z"
   }
 ]
 ```
 
-#### POST /boards/:boardId/lists/:listId/cards
+#### POST /boards/\:boardId/lists/\:listId/cards
 
 Create a new card.
 
@@ -243,20 +405,22 @@ Create a new card.
 
 ```json
 {
-  "id": 7,
-  "listId": 1,
+  "id": 102,
+  "listId": 10,
   "title": "Finalize copy",
   "description": "Incorporate feedback and finalize",
   "color": "green",
   "position": 2,
   "completed": false,
   "archived": false,
-  "createdAt": "2025-05-21T12:10:00Z",
-  "updatedAt": "2025-05-21T12:10:00Z"
+  "createdBy": "UidAlice123",
+  "updatedBy": "UidAlice123",
+  "createdAt": "2025-05-21T12:15:00Z",
+  "updatedAt": "2025-05-21T12:15:00Z"
 }
 ```
 
-#### PUT /boards/:boardId/lists/:listId/cards/:cardId
+#### PUT /boards/\:boardId/lists/\:listId/cards/\:cardId
 
 Update a card (e.g., move position, recolor, mark complete, archive).
 
@@ -270,31 +434,35 @@ Update a card (e.g., move position, recolor, mark complete, archive).
 
 ```json
 {
-  "id": 6,
-  "listId": 1,
-  "title": "Review draft",
-  "description": "Peer review the draft content",
+  "id": 101,
+  "listId": 10,
+  "title": "Define schema",
+  "description": "Draft database schema and share with team",
   "color": "red",
   "position": 1,
   "completed": true,
   "archived": false,
-  "createdAt": "2025-05-19T10:00:00Z",
-  "updatedAt": "2025-05-21T12:15:00Z"
+  "createdBy": "UidBob456",
+  "updatedBy": "UidBob456",
+  "createdAt": "2025-01-15T10:00:00.000Z",
+  "updatedAt": "2025-05-21T12:20:00Z"
 }
 ```
 
 ## Database Schema
 
-The application uses three main tables defined in `src/db/schema.js`:
+The application uses these tables defined in `src/db/schema.js`:
 
-- **boards**: tracks board metadata (`id`, `name`, timestamps)
-- **lists**: belongs to a board and orders lists via `position`
-- **cards**: belongs to a list with fields for `title`, `description`, `color`, `position`, `completed`, and `archived`
+- **users**: Firebase UIDs with profile info
+- **boards**: tracks board metadata and ownership
+- **board_users**: join table for board membership and invitation status
+- **lists**: belongs to a board, ordered by `position`
+- **cards**: belongs to a list, with fields for content, status, color, and order
 
-Each table includes `created_at` and `updated_at` timestamps managed by Drizzle.
+Every table has `created_at` and `updated_at` timestamps managed by Drizzle.
 
 ## Notes
 
 - Migrations are managed via Drizzle Kit and run on each startup (`npm run migrate`).
-- Do **not** commit your real `.env` file; commit only `.env.sample`.
-- If another developer clones this repo, they can stand up just the DB (`docker-compose up -d db`) and then run the API locally, or bring up the full stack with `docker-compose up -d`.
+- Do **not** commit your real `.env`; commit only `.env.sample`.
+- If another dev clones this repo, they can stand up just the DB (`docker-compose up -d db`) and then run the API locally, or bring up the full stack with `docker-compose up -d`.
