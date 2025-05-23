@@ -6,6 +6,7 @@
   "main": "index.js",
   "scripts": {
     "migrate": "npx drizzle-kit generate && npx drizzle-kit migrate",
+    "update:api": "docker-compose up -d --build --force-recreate api",
     "db:reset": "docker-compose down -v && docker-compose up -d db && npx drizzle-kit generate && echo Please wait... && sleep 15 && echo Finished!",
     "start": "npm run migrate && node index.js",
     "dev": "nodemon --exec \"npm run migrate && node index.js\""
