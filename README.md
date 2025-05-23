@@ -205,13 +205,13 @@ Header: x-user-uid: <Firebase UID>
 Run the helper script that simulates five users creating boards, lists, cards, invitations, and moves.
 
 ```bash
-node scripts/seed_api.js
+node scripts/seed.js
 ```
 
 Override the API base URL if needed
 
 ```bash
-BASE_URL=http://localhost:3009 node scripts/seed_api.js
+BASE_URL=http://localhost:3009 node scripts/seed.js
 ```
 
 ---
