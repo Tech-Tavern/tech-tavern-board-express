@@ -100,7 +100,7 @@ function randomInt(min, max) {
             body: JSON.stringify({
               title: `List ${j + 1}`,
               position: j,
-              columnPos: Math.floor(Math.random() * 5) + 1,
+              columnPos: 0,
               color: ["#D8B4FE", "#A5F3FC", "#FDE68A", "#C7D2FE", "#E0FFFF"][j],
             }),
           });
