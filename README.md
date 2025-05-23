@@ -1,21 +1,23 @@
-A Node/Express backend that uses Drizzle ORM and MySQL to power a Trello-style board app.
+# Tech Tavern Board Express Backend
+
+A Node + Express backend that uses Drizzle ORM and MySQL to power a Trello-style board app.
 
 ## Prerequisites
 
 - Node.js 18+ installed locally
-- Docker and Docker Compose installed
+- Docker **and** Docker Compose installed
   _Troubleshooting:_ If you don’t have Docker Compose, follow <https://docs.docker.com/compose/install/>
 - A copy of `.env` created from `.env.sample`
 
 ## Setup
 
-1. Install dependencies
+1. **Install dependencies**
 
    ```bash
    npm install
    ```
 
-2. Copy the environment template and update
+2. **Copy the environment template and update**
 
    ```bash
    cp .env.sample .env
@@ -25,13 +27,13 @@ A Node/Express backend that uses Drizzle ORM and MySQL to power a Trello-style b
 
 ## Development
 
-1. Start only the database container
+1. **Start only the database container**
 
    ```bash
    docker-compose up -d db
    ```
 
-2. Run migrations and launch the API with nodemon
+2. **Run migrations and launch the API with nodemon**
 
    ```bash
    npm run dev
@@ -41,7 +43,7 @@ A Node/Express backend that uses Drizzle ORM and MySQL to power a Trello-style b
 
 ## Full-stack Run
 
-Bring up both the DB and API in containers
+Bring up both the DB and API in containers:
 
 ```bash
 docker-compose up -d
@@ -76,7 +78,8 @@ Header: x-user-uid: <Firebase UID>
 | ------ | ------- | ------------------- |
 | GET    | /health | Simple uptime check |
 
-<details><summary>Response body</summary>
+<details>
+<summary>Response body</summary>
 
 ```json
 { "status": "ok" }
@@ -94,7 +97,8 @@ Header: x-user-uid: <Firebase UID>
 | GET    | /users/:uid | Fetch user by UID       |
 | POST   | /users      | Create or update a user |
 
-<details><summary>POST / request body</summary>
+<details>
+<summary>POST / request body</summary>
 
 ```json
 {
@@ -118,7 +122,8 @@ Header: x-user-uid: <Firebase UID>
 | POST   | /boards          | Create a board                                      |
 | DELETE | /boards/:boardId | Delete a board (cascades lists, cards, memberships) |
 
-<details><summary>POST / request body</summary>
+<details>
+<summary>POST / request body</summary>
 
 ```json
 { "name": "My New Board" }
@@ -137,7 +142,8 @@ Header: x-user-uid: <Firebase UID>
 | PUT    | /boards/:boardId/members/:userUid | Accept or deny invitation |
 | DELETE | /boards/:boardId/members/:userUid | Remove a member           |
 
-<details><summary>POST / request body</summary>
+<details>
+<summary>POST / request body</summary>
 
 ```json
 { "userUid": "UidBob456", "role": "member" }
@@ -156,7 +162,8 @@ Header: x-user-uid: <Firebase UID>
 | PUT    | /boards/:boardId/lists/:listId | Update title, position, color |
 | DELETE | /boards/:boardId/lists/:listId | Delete a list and its cards   |
 
-<details><summary>POST / request body</summary>
+<details>
+<summary>POST / request body</summary>
 
 ```json
 { "title": "To Do", "position": 0, "color": "#D8B4FE" }
@@ -175,7 +182,8 @@ Header: x-user-uid: <Firebase UID>
 | PUT    | /boards/:boardId/lists/:listId/cards/:cardId | Update or move a card |
 | DELETE | /boards/:boardId/lists/:listId/cards/:cardId | Delete a card         |
 
-<details><summary>POST / request body</summary>
+<details>
+<summary>POST / request body</summary>
 
 ```json
 {
@@ -188,7 +196,8 @@ Header: x-user-uid: <Firebase UID>
 
 </details>
 
-<details><summary>PUT / request body (any subset)</summary>
+<details>
+<summary>PUT / request body (any subset)</summary>
 
 ```json
 { "position": 2, "completed": true, "color": "red" }
@@ -206,7 +215,7 @@ Run the helper script that simulates five users creating boards, lists, cards, i
 node scripts/seed.js
 ```
 
-Override the API base URL if needed
+Override the API base URL if needed:
 
 ```bash
 BASE_URL=http://localhost:3009 node scripts/seed.js
@@ -216,7 +225,7 @@ BASE_URL=http://localhost:3009 node scripts/seed.js
 
 ## Database Schema
 
-Defined in `src/db/schema.js`. Main tables
+Defined in `src/db/schema.js`. Main tables:
 
 - **users** – Firebase profiles
 - **boards** – board records (ownerUid, createdBy, updatedBy)
@@ -229,7 +238,7 @@ All tables include `created_at` and `updated_at`.
 ---
 
 > **Tip:** Never commit your real `.env`; only `.env.sample`.
-> Clone steps for a new dev
+> **Clone steps for a new dev**
 >
 > 1. `docker-compose up -d db`
 > 2. `npm run dev`
