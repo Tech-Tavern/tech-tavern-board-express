@@ -1,5 +1,3 @@
-# Tech Tavern Board Express Backend
-
 A Node/Express backend that uses Drizzle ORM and MySQL to power a Trello-style board app.
 
 ## Prerequisites
