@@ -37,7 +37,7 @@ export const upsertUser = async (req, res, next) => {
       })
       .execute();
     const [fresh] = await db.select().from(users).where(eq(users.uid, uid));
-    res.status(200).json(fresh);
+    res.status(201).json(fresh);
   } catch (err) {
     console.error(err)
     next(err);

@@ -1,7 +1,6 @@
-// src/controllers/listController.js
 import { eq } from "drizzle-orm";
 import { db } from "../../index.js";
-import { lists } from "../db/schema.js";
+import { cards, lists } from "../db/schema.js";
 
 export const getLists = async (req, res, next) => {
   try {
@@ -35,10 +34,9 @@ export const getLists = async (req, res, next) => {
 export const createList = async (req, res, next) => {
   try {
     const boardId = BigInt(req.params.boardId);
-    const { title, position = 0, color = "#D8B4FE" , columnPos} = req.body;
+    const { title, position = 0, color = "#D8B4FE", columnPos } = req.body;
     const userUid = req.header("x-user-uid");
 
-    // 1️⃣ insert & grab the auto-increment id
     const [ResultSetHeader] = await db
       .insert(lists)
       .values({
@@ -52,13 +50,11 @@ export const createList = async (req, res, next) => {
       })
       .execute();
 
-    // 2️⃣ re-query the full row so we have timestamps, etc.
     const [l] = await db
       .select()
       .from(lists)
       .where(eq(lists.id, BigInt(ResultSetHeader.insertId)));
 
-    // 3️⃣ serialize and return
     res.status(201).json({
       id: l.id.toString(),
       boardId: l.boardId.toString(),
@@ -117,3 +113,16 @@ export const updateList = async (req, res, next) => {
   }
 };
 
+export const deleteList = async (req, res, next) => {
+  try {
+    const listId = BigInt(req.params.listId);
+
+    await db.delete(cards).where(eq(cards.listId, listId)).execute();
+
+    await db.delete(lists).where(eq(lists.id, listId)).execute();
+
+    res.status(204).end();
+  } catch (err) {
+    next(err);
+  }
+};

@@ -1,9 +1,7 @@
-// src/controllers/cardController.js
 import { eq } from "drizzle-orm";
 import { cards } from "../db/schema.js";
 import { db } from "../../index.js";
 
-// GET /boards/:boardId/lists/:listId/cards
 export const getCards = async (req, res, next) => {
   try {
     const listId = BigInt(req.params.listId);
@@ -34,7 +32,6 @@ export const getCards = async (req, res, next) => {
   }
 };
 
-// POST /boards/:boardId/lists/:listId/cards
 export const createCard = async (req, res, next) => {
   try {
     const listId = BigInt(req.params.listId);
@@ -46,7 +43,6 @@ export const createCard = async (req, res, next) => {
     } = req.body;
     const userUid = req.header("x-user-uid");
 
-    // insert & get insertId
     const [ResultSetHeader] = await db
       .insert(cards)
       .values({
@@ -62,7 +58,6 @@ export const createCard = async (req, res, next) => {
       })
       .execute();
 
-    // re-fetch the new row
     const [c] = await db
       .select()
       .from(cards)
@@ -89,7 +84,6 @@ export const createCard = async (req, res, next) => {
   }
 };
 
-// PUT /boards/:boardId/lists/:listId/cards/:cardId
 export const updateCard = async (req, res, next) => {
   try {
     const cardId = BigInt(req.params.cardId);
@@ -97,7 +91,6 @@ export const updateCard = async (req, res, next) => {
       req.body;
     const userUid = req.header("x-user-uid");
 
-    // build the update payload only from provided fields
     const upd = { updatedBy: userUid };
     if (title !== undefined) upd.title = title;
     if (description !== undefined) upd.description = description;
@@ -105,12 +98,9 @@ export const updateCard = async (req, res, next) => {
     if (position !== undefined) upd.position = position;
     if (completed !== undefined) upd.completed = completed;
     if (archived !== undefined) upd.archived = archived;
-    // always touch updatedBy
 
-    // run the update
     await db.update(cards).set(upd).where(eq(cards.id, cardId)).execute();
 
-    // return the fresh row
     const [c] = await db.select().from(cards).where(eq(cards.id, cardId));
 
     res.json({
@@ -130,6 +120,15 @@ export const updateCard = async (req, res, next) => {
   } catch (err) {
     console.log(err);
 
+    next(err);
+  }
+};
+export const deleteCard = async (req, res, next) => {
+  try {
+    const cardId = BigInt(req.params.cardId);
+    await db.delete(cards).where(eq(cards.id, cardId)).execute();
+    res.status(204).end();
+  } catch (err) {
     next(err);
   }
 };
