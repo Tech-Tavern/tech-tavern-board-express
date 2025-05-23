@@ -1,62 +1,60 @@
 # Tech Tavern Board Express Backend
 
-A Node/Express backend using Drizzle ORM and MySQL for the Trello‑style board app.
+A Node/Express backend that uses Drizzle ORM and MySQL to power a Trello-style board app.
 
 ## Prerequisites
 
 - Node.js 18+ installed locally
 - Docker and Docker Compose installed
-  _Troubleshooting:_ If you don't have Docker Compose, install it via your package manager or follow the guide at [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/)
+  _Troubleshooting:_ If you don’t have Docker Compose, follow <https://docs.docker.com/compose/install/>
 - A copy of `.env` created from `.env.sample`
 
 ## Setup
 
-1. Install dependencies:
+1. Install dependencies
 
    ```bash
    npm install
    ```
 
-2. Copy the environment template and update:
+2. Copy the environment template and update
 
    ```bash
    cp .env.sample .env
    ```
 
-   The values in `.env.sample` will work out of the box for local development. For security, consider rotating these credentials before sharing or deploying.
+   The values in `.env.sample` work out of the box for local development. Rotate credentials before sharing or deploying.
 
-## Development (iterating on API)
+## Development
 
-1. Start only the database container:
+1. Start only the database container
 
    ```bash
    docker-compose up -d db
    ```
 
-2. Run migrations and launch the API with nodemon:
+2. Run migrations and launch the API with nodemon
 
    ```bash
    npm run dev
    ```
 
-3. The API will listen on the port defined in `.env` (default `3009`).
+3. The API listens on the port set in `.env` (default `3009`).
 
-## Full‑stack Run (production or full stack)
+## Full-stack Run
 
-Bring up both the DB and API in containers:
+Bring up both the DB and API in containers
 
 ```bash
 docker-compose up -d
 ```
 
-This applies any pending migrations and exposes:
+This applies any pending migrations and exposes
 
 - MySQL on the host port defined in `.env`
 - API on the host port defined in `.env`
 
 ## Stopping Services
-
-Tear down all containers and network:
 
 ```bash
 docker-compose down
@@ -66,43 +64,39 @@ docker-compose down
 
 ## Authentication Header
 
-For development and seeding we trust an `x-user-uid` header to identify the user. In production you’ll replace this with real Firebase JWT verification middleware.
+During development we trust an `x-user-uid` header. Production will swap this for Firebase JWT verification.
 
-All protected endpoints require:
-
-```
 Header: x-user-uid: <Firebase UID>
-```
 
 ---
 
 ## API Endpoints
 
-### Health Check
+### Health
 
-**GET** `/health`
+| Method | Path    | Notes               |
+| ------ | ------- | ------------------- |
+| GET    | /health | Simple uptime check |
 
-Returns:
+<details><summary>Response body</summary>
 
 ```json
 { "status": "ok" }
 ```
 
+</details>
+
+---
+
 ### Users
 
-#### GET /users
+| Method | Path        | Purpose                 |
+| ------ | ----------- | ----------------------- |
+| GET    | /users      | List all users          |
+| GET    | /users/:uid | Fetch user by UID       |
+| POST   | /users      | Create or update a user |
 
-List all users.
-
-#### GET /users/\:uid
-
-Fetch a single user by UID.
-
-#### POST /users
-
-Create or update a user after sign‑in.
-
-**Body**:
+<details><summary>POST / request body</summary>
 
 ```json
 {
@@ -113,86 +107,77 @@ Create or update a user after sign‑in.
 }
 ```
 
+</details>
+
 ---
 
 ### Boards
 
-#### GET /boards
+| Method | Path             | Purpose                                             |
+| ------ | ---------------- | --------------------------------------------------- |
+| GET    | /boards          | Boards the current user can access                  |
+| GET    | /boards/my       | Boards owned by the current user                    |
+| POST   | /boards          | Create a board                                      |
+| DELETE | /boards/:boardId | Delete a board (cascades lists, cards, memberships) |
 
-Retrieve all boards the authenticated user has access to.
-
-#### POST /boards
-
-Create a new board.
-**Header**: `x-user-uid` required
-
-**Body**:
+<details><summary>POST / request body</summary>
 
 ```json
 { "name": "My New Board" }
 ```
 
+</details>
+
 ---
 
 ### Board Members
 
-#### GET /boards/\:boardId/members
+| Method | Path                              | Purpose                   |
+| ------ | --------------------------------- | ------------------------- |
+| GET    | /boards/:boardId/members          | List members              |
+| POST   | /boards/:boardId/members          | Invite a user             |
+| PUT    | /boards/:boardId/members/:userUid | Accept or deny invitation |
+| DELETE | /boards/:boardId/members/:userUid | Remove a member           |
 
-List board members.
-
-#### POST /boards/\:boardId/members
-
-Invite a user.
-
-**Body**:
+<details><summary>POST / request body</summary>
 
 ```json
 { "userUid": "UidBob456", "role": "member" }
 ```
 
-#### PUT /boards/\:boardId/members/\:userUid
-
-Accept or deny invitation.
-
-**Body**:
-
-```json
-{ "status": "accepted" }
-```
-
-#### DELETE /boards/\:boardId/members/\:userUid
-
-Remove a member.
+</details>
 
 ---
 
 ### Lists
 
-#### GET /boards/\:boardId/lists
+| Method | Path                           | Purpose                       |
+| ------ | ------------------------------ | ----------------------------- |
+| GET    | /boards/:boardId/lists         | Lists on a board              |
+| POST   | /boards/:boardId/lists         | Create a list                 |
+| PUT    | /boards/:boardId/lists/:listId | Update title, position, color |
+| DELETE | /boards/:boardId/lists/:listId | Delete a list and its cards   |
 
-Retrieve all lists for a board.
-
-#### POST /boards/\:boardId/lists
-
-Create a new list.
-**Body**:
+<details><summary>POST / request body</summary>
 
 ```json
 { "title": "To Do", "position": 0, "color": "#D8B4FE" }
 ```
 
+</details>
+
 ---
 
 ### Cards
 
-#### GET /boards/\:boardId/lists/\:listId/cards
+| Method | Path                                         | Purpose               |
+| ------ | -------------------------------------------- | --------------------- |
+| GET    | /boards/:boardId/lists/:listId/cards         | Cards in a list       |
+| POST   | /boards/:boardId/lists/:listId/cards         | Create a card         |
+| PUT    | /boards/:boardId/lists/:listId/cards/:cardId | Update or move a card |
+| DELETE | /boards/:boardId/lists/:listId/cards/:cardId | Delete a card         |
 
-List cards in a list.
-
-#### POST /boards/\:boardId/lists/\:listId/cards
-
-Add a new card.
-**Body**:
+<details><summary>POST / request body</summary>
 
 ```json
 {
@@ -203,29 +188,27 @@ Add a new card.
 }
 ```
 
-#### PUT /boards/\:boardId/lists/\:listId/cards/\:cardId
+</details>
 
-Update a card (move, recolor, complete, archive).
-
-**Body** (any subset):
+<details><summary>PUT / request body (any subset)</summary>
 
 ```json
 { "position": 2, "completed": true, "color": "red" }
 ```
 
+</details>
+
 ---
 
 ## Seeding via HTTP
 
-We include a helper script that hits your API and simulates 5 users each creating boards, lists, cards, invitations, and moves.
-
-**Usage**:
+Run the helper script that simulates five users creating boards, lists, cards, invitations, and moves.
 
 ```bash
 node scripts/seed_api.js
 ```
 
-You can customize `BASE_URL` via environment:
+Override the API base URL if needed
 
 ```bash
 BASE_URL=http://localhost:3009 node scripts/seed_api.js
@@ -235,19 +218,20 @@ BASE_URL=http://localhost:3009 node scripts/seed_api.js
 
 ## Database Schema
 
-Defined in `src/db/schema.js`, the main tables:
+Defined in `src/db/schema.js`. Main tables
 
-- **users**: Firebase profile records
-- **boards**: each with `ownerUid`, `createdBy`, `updatedBy`
-- **board_users**: membership status & role
-- **lists**: per‑board columns
-- **cards**: per‑list items, with content, colors, status, and ordering
+- **users** – Firebase profiles
+- **boards** – board records (ownerUid, createdBy, updatedBy)
+- **board_users** – membership status and role
+- **lists** – per-board columns
+- **cards** – per-list items (content, colors, status, ordering)
 
 All tables include `created_at` and `updated_at`.
 
 ---
 
-> **Tip:** Do **not** commit your real `.env`; only `.env.sample`. If another dev clones:
+> **Tip:** Never commit your real `.env`; only `.env.sample`.
+> Clone steps for a new dev
 >
 > 1. `docker-compose up -d db`
 > 2. `npm run dev`
