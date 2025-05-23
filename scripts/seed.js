@@ -53,6 +53,12 @@ function randomInt(min, max) {
         name: "Thomas Coons",
         photo: "",
       },
+      {
+        uid: "ntM9ci177NNPFGdPujlNna2ubNJ2",
+        email: "tm.lewisbenson@gmail.com",
+        name: "Lewis Benson",
+        photo: "",
+      },
     ];
     console.log("Seeding users...");
     for (const u of users) {
