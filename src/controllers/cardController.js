@@ -105,6 +105,8 @@ export const updateCard = async (req, res, next) => {
     if (position !== undefined) upd.position = position;
     if (completed !== undefined) upd.completed = completed;
     if (archived !== undefined) upd.archived = archived;
+    if (req.body.listId !== undefined) upd.listId = BigInt(req.body.listId);
+
     // always touch updatedBy
 
     // run the update
